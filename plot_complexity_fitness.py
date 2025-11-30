@@ -129,30 +129,82 @@ def plot_complexity_vs_fitness(run_dir, show=False):
     # ==========================================
     fig2, (ax4, ax5) = plt.subplots(1, 2, figsize=(14, 6))
 
-    # Color by generation (early = blue, late = red)
-    colors = plt.cm.viridis(generations / generations.max())
+    # Filter data: only include fitness >= 150
+    import numpy as np
+    fitness_mask = best_fitness >= 150
+    filtered_nodes = avg_nodes[fitness_mask]
+    filtered_connections = avg_connections[fitness_mask]
+    filtered_fitness = best_fitness[fitness_mask]
+    filtered_generations = generations[fitness_mask]
 
-    # Nodes vs Fitness
-    scatter1 = ax4.scatter(avg_nodes, best_fitness, c=generations, cmap='viridis',
+    # Color by generation (early = blue, late = red)
+    if len(filtered_generations) > 0:
+        colors = plt.cm.viridis(filtered_generations / generations.max())
+    else:
+        print("Warning: No data points with fitness >= 150")
+        colors = 'blue'
+
+    # Nodes vs Fitness with trend line
+    scatter1 = ax4.scatter(filtered_nodes, filtered_fitness, c=filtered_generations, cmap='viridis',
                           s=100, alpha=0.6, edgecolors='black', linewidth=0.5)
+
+    # Add linear regression trend line for nodes
+    if len(filtered_nodes) > 1:
+        z_nodes = np.polyfit(filtered_nodes, filtered_fitness, 1)
+        p_nodes = np.poly1d(z_nodes)
+        x_nodes_line = np.linspace(filtered_nodes.min(), filtered_nodes.max(), 100)
+        ax4.plot(x_nodes_line, p_nodes(x_nodes_line), "r--", linewidth=2, alpha=0.8, label='Trend')
+
+        # Calculate R²
+        y_pred_nodes = p_nodes(filtered_nodes)
+        ss_res_nodes = np.sum((filtered_fitness - y_pred_nodes) ** 2)
+        ss_tot_nodes = np.sum((filtered_fitness - np.mean(filtered_fitness)) ** 2)
+        r2_nodes = 1 - (ss_res_nodes / ss_tot_nodes) if ss_tot_nodes > 0 else 0
+
+        # Display R² on plot
+        ax4.text(0.05, 0.95, f'R² = {r2_nodes:.3f}', transform=ax4.transAxes,
+                fontsize=12, fontweight='bold', verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
     ax4.axhline(y=target_fitness, color='gold', linestyle='--', linewidth=2, alpha=0.7)
     ax4.axhline(y=200, color='orange', linestyle=':', linewidth=1.5, alpha=0.6)
     ax4.set_xlabel('Average Number of Nodes', fontsize=12, fontweight='bold')
     ax4.set_ylabel('Best Fitness', fontsize=12, fontweight='bold')
-    ax4.set_title('Fitness vs Network Size', fontsize=13, fontweight='bold', pad=10)
+    ax4.set_title('Fitness vs Network Size (Fitness >= 200)', fontsize=13, fontweight='bold', pad=10)
     ax4.grid(True, alpha=0.3, linestyle='--')
+    ax4.legend(loc='lower right', fontsize=10)
     cbar1 = plt.colorbar(scatter1, ax=ax4)
     cbar1.set_label('Generation', fontsize=10, fontweight='bold')
 
-    # Connections vs Fitness
-    scatter2 = ax5.scatter(avg_connections, best_fitness, c=generations, cmap='viridis',
+    # Connections vs Fitness with trend line
+    scatter2 = ax5.scatter(filtered_connections, filtered_fitness, c=filtered_generations, cmap='viridis',
                           s=100, alpha=0.6, edgecolors='black', linewidth=0.5)
+
+    # Add linear regression trend line for connections
+    if len(filtered_connections) > 1:
+        z_conn = np.polyfit(filtered_connections, filtered_fitness, 1)
+        p_conn = np.poly1d(z_conn)
+        x_conn_line = np.linspace(filtered_connections.min(), filtered_connections.max(), 100)
+        ax5.plot(x_conn_line, p_conn(x_conn_line), "r--", linewidth=2, alpha=0.8, label='Trend')
+
+        # Calculate R²
+        y_pred_conn = p_conn(filtered_connections)
+        ss_res_conn = np.sum((filtered_fitness - y_pred_conn) ** 2)
+        ss_tot_conn = np.sum((filtered_fitness - np.mean(filtered_fitness)) ** 2)
+        r2_conn = 1 - (ss_res_conn / ss_tot_conn) if ss_tot_conn > 0 else 0
+
+        # Display R² on plot
+        ax5.text(0.05, 0.95, f'R² = {r2_conn:.3f}', transform=ax5.transAxes,
+                fontsize=12, fontweight='bold', verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
     ax5.axhline(y=target_fitness, color='gold', linestyle='--', linewidth=2, alpha=0.7)
     ax5.axhline(y=200, color='orange', linestyle=':', linewidth=1.5, alpha=0.6)
     ax5.set_xlabel('Average Number of Connections', fontsize=12, fontweight='bold')
     ax5.set_ylabel('Best Fitness', fontsize=12, fontweight='bold')
-    ax5.set_title('Fitness vs Network Connectivity', fontsize=13, fontweight='bold', pad=10)
+    ax5.set_title('Fitness vs Network Connectivity (Fitness >= 150)', fontsize=13, fontweight='bold', pad=10)
     ax5.grid(True, alpha=0.3, linestyle='--')
+    ax5.legend(loc='lower right', fontsize=10)
     cbar2 = plt.colorbar(scatter2, ax=ax5)
     cbar2.set_label('Generation', fontsize=10, fontweight='bold')
 
@@ -228,15 +280,26 @@ def plot_complexity_vs_fitness(run_dir, show=False):
     print(f"  Final:     {avg_connections.iloc[-1]:7.1f}")
     print(f"  Change:    {avg_connections.iloc[-1] - avg_connections.iloc[0]:+7.1f}")
 
-    # Calculate correlation
+    # Calculate correlation (all data)
     import numpy as np
     corr_nodes = np.corrcoef(avg_nodes, best_fitness)[0, 1]
     corr_connections = np.corrcoef(avg_connections, best_fitness)[0, 1]
 
-    print(f"\nCorrelations with Best Fitness:")
+    print(f"\nCorrelations with Best Fitness (All Data):")
     print(f"  Nodes:        {corr_nodes:+.3f}")
     print(f"  Connections:  {corr_connections:+.3f}")
-    print(f"\n  (Values closer to +1 mean stronger positive relationship)")
+
+    # Calculate R² for filtered data (fitness >= 150)
+    if len(filtered_nodes) > 1:
+        print(f"\nR² Values (Fitness >= 150):")
+        print(f"  Nodes:        {r2_nodes:.3f}")
+        print(f"  Connections:  {r2_conn:.3f}")
+        print(f"  Data points:  {len(filtered_nodes)} of {len(best_fitness)} total")
+    else:
+        print(f"\nR² Values: Not enough data points with fitness >= 150")
+
+    print(f"\n  (R² closer to 1 means stronger linear relationship)")
+    print(f"  (Correlation closer to +1 means stronger positive relationship)")
     print("="*70 + "\n")
 
     if show:
