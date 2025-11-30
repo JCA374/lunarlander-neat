@@ -12,9 +12,9 @@ __pycache__/
 .Python
 
 # Training outputs
-runs/
-*.pkl
-*.csv
+#runs/
+#*.pkl
+#*.csv
 
 # Jupyter
 .ipynb_checkpoints/

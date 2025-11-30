@@ -1,0 +1,158 @@
+{
+  "key_moments": {
+    "first_positive": {
+      "generation": 4,
+      "fitness": 21.97499638666764,
+      "message": "First positive fitness achieved!"
+    },
+    "breakthroughs": [
+      {
+        "generation": 4,
+        "fitness_jump": 100.01026643854738,
+        "from": -78.03527005187973,
+        "to": 21.97499638666764,
+        "message": "Major breakthrough - fitness jumped 100.0 points!"
+      },
+      {
+        "generation": 10,
+        "fitness_jump": 99.4818453694534,
+        "from": -50.196075828777374,
+        "to": 49.28576954067603,
+        "message": "Major breakthrough - fitness jumped 99.5 points!"
+      },
+      {
+        "generation": 21,
+        "fitness_jump": 67.33291213075566,
+        "from": 38.401542381761146,
+        "to": 105.7344545125168,
+        "message": "Major breakthrough - fitness jumped 67.3 points!"
+      },
+      {
+        "generation": 32,
+        "fitness_jump": 84.01057003132493,
+        "from": 138.32400667045312,
+        "to": 222.33457670177805,
+        "message": "Major breakthrough - fitness jumped 84.0 points!"
+      },
+      {
+        "generation": 42,
+        "fitness_jump": 60.78731210993223,
+        "from": 157.43227082059468,
+        "to": 218.2195829305269,
+        "message": "Major breakthrough - fitness jumped 60.8 points!"
+      }
+    ],
+    "stagnation_periods": [
+      {
+        "start_gen": 4,
+        "end_gen": 15,
+        "start_fitness": 21.97499638666764,
+        "end_fitness": -0.750381779487503,
+        "duration": 11,
+        "message": "Stagnated for 11 generations"
+      },
+      {
+        "start_gen": 10,
+        "end_gen": 20,
+        "start_fitness": 49.28576954067603,
+        "end_fitness": 38.401542381761146,
+        "duration": 10,
+        "message": "Stagnated for 10 generations"
+      },
+      {
+        "start_gen": 32,
+        "end_gen": 45,
+        "start_fitness": 222.33457670177805,
+        "end_fitness": 170.7529521824131,
+        "duration": 13,
+        "message": "Stagnated for 13 generations"
+      },
+      {
+        "start_gen": 40,
+        "end_gen": 50,
+        "start_fitness": 219.2856703570695,
+        "end_fitness": 195.33243978521165,
+        "duration": 10,
+        "message": "Stagnated for 10 generations"
+      },
+      {
+        "start_gen": 46,
+        "end_gen": 57,
+        "start_fitness": 210.6679352023948,
+        "end_fitness": 182.35993043421743,
+        "duration": 11,
+        "message": "Stagnated for 11 generations"
+      },
+      {
+        "start_gen": 53,
+        "end_gen": 64,
+        "start_fitness": 223.0411322019875,
+        "end_fitness": 226.8182016718409,
+        "duration": 11,
+        "message": "Stagnated for 11 generations"
+      },
+      {
+        "start_gen": 58,
+        "end_gen": 68,
+        "start_fitness": 220.2442306931254,
+        "end_fitness": 223.8372439365492,
+        "duration": 10,
+        "message": "Stagnated for 10 generations"
+      },
+      {
+        "start_gen": 61,
+        "end_gen": 72,
+        "start_fitness": 234.39036299124135,
+        "end_fitness": 215.3948096614893,
+        "duration": 11,
+        "message": "Stagnated for 11 generations"
+      },
+      {
+        "start_gen": 65,
+        "end_gen": 75,
+        "start_fitness": 240.17712821488152,
+        "end_fitness": 210.1032814571261,
+        "duration": 10,
+        "message": "Stagnated for 10 generations"
+      }
+    ],
+    "complexity_peak": {
+      "generation": 10,
+      "nodes": 5.458333333333333,
+      "connections": 18.516666666666666,
+      "message": "Maximum complexity reached: 5.5 nodes, 18.5 connections"
+    }
+  },
+  "improvements": {
+    "total_best_improvement": 303.0001463728295,
+    "total_avg_improvement": 217.32258622894642,
+    "max_fitness_achieved": 241.8557922334912,
+    "final_best_fitness": 210.1032814571261,
+    "final_avg_fitness": -224.09667235541605,
+    "percent_of_target": 77.81603016930596
+  },
+  "phases": [
+    {
+      "name": "Exploration",
+      "start_gen": 0,
+      "end_gen": 14,
+      "fitness_start": -92.8968649157034,
+      "fitness_end": 7.196264439453866,
+      "description": "Random exploration and initial evolution"
+    },
+    {
+      "name": "Initial Learning",
+      "start_gen": 4,
+      "end_gen": 10,
+      "fitness_start": 21.97499638666764,
+      "fitness_end": 49.28576954067603,
+      "description": "First successful behaviors emerging"
+    }
+  ],
+  "summary": {
+    "total_generations": 76,
+    "final_best_fitness": 210.1032814571261,
+    "final_avg_fitness": -224.09667235541605,
+    "num_species_final": 2
+  }
+}
