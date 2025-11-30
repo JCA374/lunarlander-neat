@@ -170,7 +170,7 @@ def plot_complexity_vs_fitness(run_dir, show=False):
     ax4.axhline(y=200, color='orange', linestyle=':', linewidth=1.5, alpha=0.6)
     ax4.set_xlabel('Average Number of Nodes', fontsize=12, fontweight='bold')
     ax4.set_ylabel('Best Fitness', fontsize=12, fontweight='bold')
-    ax4.set_title('Fitness vs Network Size (Fitness >= 200)', fontsize=13, fontweight='bold', pad=10)
+    ax4.set_title('Fitness vs Network Size (Fitness >= 250)', fontsize=13, fontweight='bold', pad=10)
     ax4.grid(True, alpha=0.3, linestyle='--')
     ax4.legend(loc='lower right', fontsize=10)
     cbar1 = plt.colorbar(scatter1, ax=ax4)

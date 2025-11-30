@@ -1,17 +1,17 @@
 # Training Summary: 
-Generated: 2025-11-30 19:57:21
+Generated: 2025-11-30 21:44:59
 ---
 ## 📊 Overview
-- **Total Generations**: 185
-- **Final Best Fitness**: 259.1
-- **Final Average Fitness**: -119.6
-- **Final Species Count**: 3.0
-- **Final Complexity**: 19.6 nodes, 49.1 connections
+- **Total Generations**: 268
+- **Final Best Fitness**: 271.5
+- **Final Average Fitness**: -70.1
+- **Final Species Count**: 2.0
+- **Final Complexity**: 30.9 nodes, 79.8 connections
 
 ## 📈 Fitness Progression
 - **Starting Best**: -4.7
-- **Ending Best**: 259.1
-- **Total Improvement**: 263.8
+- **Ending Best**: 271.5
+- **Total Improvement**: 276.2
 - **Peak Fitness**: 283.0 (Gen 177)
 
 ## 🎯 Key Moments
@@ -48,31 +48,29 @@ Generated: 2025-11-30 19:57:21
 - **Jump**: +52.7 (from 186.9 to 239.6)
 
 ### Complexity Peak
-- **Generation**: 179
-- **Nodes**: 20.1
-- **Connections**: 51.0
+- **Generation**: 264
+- **Nodes**: 30.9
+- **Connections**: 79.8
 - **What happened**: Networks reached maximum structural complexity
 
 ## 🧬 Evolution Story
 
-### Phase 1: Early Evolution (Generations 0-61)
-- Average best fitness: 108.4
+### Phase 1: Early Evolution (Generations 0-89)
+- Average best fitness: 144.9
 - Networks beginning to find successful strategies
 
-### Phase 2: Mid Evolution (Generations 61-123)
-- Average best fitness: 239.6 (+131.2 from Phase 1)
+### Phase 2: Mid Evolution (Generations 89-178)
+- Average best fitness: 260.3 (+115.5 from Phase 1)
 
-### Phase 3: Late Evolution (Generations 123-185)
-- Average best fitness: 264.8 (+25.2 from Phase 2)
+### Phase 3: Late Evolution (Generations 178-268)
+- Average best fitness: 261.3 (+1.0 from Phase 2)
 - Networks grew more complex to handle task demands
 
 ## 💡 Recommendations
 
-### Performance: Close to target!
-- **Current**: 259.1 / 270.0 (96.0%)
-- **Suggestions**:
-  - Run for more generations to fine-tune
-  - Consider lowering mutation rates for refinement
+### Performance: Target reached! 🎉
+- **Achievement**: 271.5 / 270.0 (100.6%)
+- Excellent performance!
 
 ---
 

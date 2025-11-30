@@ -13,7 +13,8 @@ __pycache__/
 
 # Training outputs
 #runs/
-#*.pkl
+*.pkl
+checkpoints/
 #*.csv
 
 # Jupyter

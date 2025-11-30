@@ -340,27 +340,123 @@
       },
       {
         "start_gen": 169,
-        "end_gen": 181,
+        "end_gen": 188,
         "start_fitness": 268.6099085285498,
-        "end_fitness": 259.1121943881582,
-        "duration": 12,
-        "message": "Stagnated for 12 generations"
+        "end_fitness": 258.8856931901827,
+        "duration": 19,
+        "message": "Stagnated for 19 generations"
+      },
+      {
+        "start_gen": 181,
+        "end_gen": 192,
+        "start_fitness": 259.1121943881582,
+        "end_fitness": 251.9482919875162,
+        "duration": 11,
+        "message": "Stagnated for 11 generations"
+      },
+      {
+        "start_gen": 184,
+        "end_gen": 197,
+        "start_fitness": 275.0444477835535,
+        "end_fitness": 265.567589207789,
+        "duration": 13,
+        "message": "Stagnated for 13 generations"
+      },
+      {
+        "start_gen": 189,
+        "end_gen": 199,
+        "start_fitness": 263.00030186549986,
+        "end_fitness": 261.94946737881514,
+        "duration": 10,
+        "message": "Stagnated for 10 generations"
+      },
+      {
+        "start_gen": 193,
+        "end_gen": 203,
+        "start_fitness": 269.3488845121707,
+        "end_fitness": 263.8232329998024,
+        "duration": 10,
+        "message": "Stagnated for 10 generations"
+      },
+      {
+        "start_gen": 197,
+        "end_gen": 208,
+        "start_fitness": 265.567589207789,
+        "end_fitness": 258.70182175062774,
+        "duration": 11,
+        "message": "Stagnated for 11 generations"
+      },
+      {
+        "start_gen": 201,
+        "end_gen": 220,
+        "start_fitness": 257.35645968442566,
+        "end_fitness": 269.250780590995,
+        "duration": 19,
+        "message": "Stagnated for 19 generations"
+      },
+      {
+        "start_gen": 214,
+        "end_gen": 224,
+        "start_fitness": 267.9270146418039,
+        "end_fitness": 266.0185906793485,
+        "duration": 10,
+        "message": "Stagnated for 10 generations"
+      },
+      {
+        "start_gen": 216,
+        "end_gen": 226,
+        "start_fitness": 262.7761514157719,
+        "end_fitness": 259.5048252908354,
+        "duration": 10,
+        "message": "Stagnated for 10 generations"
+      },
+      {
+        "start_gen": 219,
+        "end_gen": 242,
+        "start_fitness": 267.6293380928344,
+        "end_fitness": 259.14637678992926,
+        "duration": 23,
+        "message": "Stagnated for 23 generations"
+      },
+      {
+        "start_gen": 234,
+        "end_gen": 252,
+        "start_fitness": 255.8492161979922,
+        "end_fitness": 259.1533684038593,
+        "duration": 18,
+        "message": "Stagnated for 18 generations"
+      },
+      {
+        "start_gen": 247,
+        "end_gen": 261,
+        "start_fitness": 263.8896863814743,
+        "end_fitness": 266.1514659509559,
+        "duration": 14,
+        "message": "Stagnated for 14 generations"
+      },
+      {
+        "start_gen": 253,
+        "end_gen": 264,
+        "start_fitness": 264.3515776412934,
+        "end_fitness": 271.5305130568084,
+        "duration": 11,
+        "message": "Stagnated for 11 generations"
       }
     ],
     "complexity_peak": {
-      "generation": 179,
-      "nodes": 20.096666666666668,
-      "connections": 51.02333333333333,
-      "message": "Maximum complexity reached: 20.1 nodes, 51.0 connections"
+      "generation": 264,
+      "nodes": 30.90333333333333,
+      "connections": 79.81,
+      "message": "Maximum complexity reached: 30.9 nodes, 79.8 connections"
     }
   },
   "improvements": {
-    "total_best_improvement": 263.81535097008395,
-    "total_avg_improvement": 316.75752028029046,
+    "total_best_improvement": 276.23366963873417,
+    "total_avg_improvement": 366.2239915556038,
     "max_fitness_achieved": 283.0305323425632,
-    "final_best_fitness": 259.1121943881582,
-    "final_avg_fitness": -119.56516807961184,
-    "percent_of_target": 95.96747940302154
+    "final_best_fitness": 271.5305130568084,
+    "final_avg_fitness": -70.09869680429851,
+    "percent_of_target": 100.56685668770682
   },
   "phases": [
     {
@@ -381,9 +477,9 @@
     }
   ],
   "summary": {
-    "total_generations": 185,
-    "final_best_fitness": 259.1121943881582,
-    "final_avg_fitness": -119.56516807961184,
-    "num_species_final": 3
+    "total_generations": 268,
+    "final_best_fitness": 271.5305130568084,
+    "final_avg_fitness": -70.09869680429851,
+    "num_species_final": 2
   }
 }
