@@ -59,27 +59,31 @@ def main(run_dir):
     results = {}
 
     # Step 1: Analyze training data
-    print("\n" + "🔍 Step 1/6: Analyzing training data")
+    print("\n" + "🔍 Step 1/7: Analyzing training data")
     results['analyze'] = run_command('analyze_training.py', run_dir)
 
     # Step 2: Generate report
-    print("\n" + "📝 Step 2/6: Generating training summary")
+    print("\n" + "📝 Step 2/7: Generating training summary")
     results['report'] = run_command('generate_report.py', run_dir)
 
     # Step 3: Visualize networks with fixed positions
-    print("\n" + "🧠 Step 3/6: Creating network diagrams (fixed positions)")
+    print("\n" + "🧠 Step 3/7: Creating network diagrams (fixed positions)")
     results['networks'] = run_command('visualize_network_v2.py', run_dir)
 
     # Step 4: Plot fitness curves
-    print("\n" + "📈 Step 4/6: Plotting training curves")
+    print("\n" + "📈 Step 4/7: Plotting training curves")
     results['fitness'] = run_command('plot_fitness.py', run_dir)
 
-    # Step 5: Create evolution GIF
-    print("\n" + "🎬 Step 5/6: Creating evolution animation")
+    # Step 5: Plot complexity vs fitness
+    print("\n" + "📊 Step 5/7: Creating complexity vs fitness plots")
+    results['complexity'] = run_command('plot_complexity_fitness.py', run_dir)
+
+    # Step 6: Create evolution GIF
+    print("\n" + "🎬 Step 6/7: Creating evolution animation")
     results['evolution'] = run_command('visualize_evolution.py', run_dir)
 
-    # Step 6: Analyze network structure
-    print("\n" + "🔬 Step 6/6: Analyzing best network")
+    # Step 7: Analyze network structure
+    print("\n" + "🔬 Step 7/7: Analyzing best network")
     results['demo'] = run_command('demo_best.py', run_dir, ['--analyze'])
 
     # Summary
@@ -148,6 +152,7 @@ if __name__ == '__main__':
         print("  - Training summary (Markdown)")
         print("  - Network diagrams (PNG)")
         print("  - Fitness plots (PNG)")
+        print("  - Complexity vs Fitness plots (PNG)")
         print("  - Evolution animation (GIF)")
         print("  - Network analysis report\n")
         sys.exit(1)

@@ -18,8 +18,8 @@ The training system has three main components:
    - Fitness = average reward (target ≥ 200)
 
 2. **Custom Reporter** (`FitnessLogger`)
-   - Saves **periodic best genomes** as `best_genome_g{N}.pkl` (every 10 generations by default)
-   - Logs to TWO CSV files: `fitness_history.csv` and `complexity_history.csv`
+   - Saves **periodic best genomes** as `g{N}.pkl` (every 5 generations by default)
+   - Logs to THREE CSV files: `fitness.csv`, `complexity.csv`, and `species.csv`
    - This enables full evolution replay and detailed analysis
 
 3. **Output Structure**
@@ -39,6 +39,12 @@ All visualization scripts take a `run_dir` as argument and operate on saved arti
   - Creates both comprehensive 4-panel and simple plots
   - Shows fitness, diversity, complexity evolution
 
+- **plot_complexity_fitness.py**: Analyzes relationship between network size and performance
+  - Creates 3 synchronized time-series plots (fitness, nodes, connections)
+  - Creates scatter plots showing complexity vs fitness correlation
+  - Calculates correlation coefficients to show if bigger = better
+  - Teaches that NEAT optimizes for minimal effective structure
+
 - **visualize_evolution.py**: Combines PNGs → animated GIF
   - Uses Pillow to create `neat_evolution.gif`
   - Optional side-by-side comparison
@@ -53,10 +59,14 @@ All visualization scripts take a `run_dir` as argument and operate on saved arti
 train.py
   ↓ (creates)
 runs/run_YYYYMMDD_HHMM/
-  ├── best_genome_g*.pkl  ← Used by visualize_network.py
-  ├── fitness_history.csv ← Used by plot_fitness.py
-  ├── winner.pkl          ← Used by demo_best.py
-  └── config.ini          ← Used by all visualization scripts
+  ├── data/
+  │   ├── fitness.csv        ← Used by plot_fitness.py
+  │   ├── complexity.csv     ← Used by plot_complexity_fitness.py
+  │   └── species.csv        ← Used for diversity analysis
+  ├── genomes/
+  │   ├── g000.pkl, g005.pkl ... ← Used by visualize_network.py
+  │   └── winner.pkl         ← Used by demo_best.py
+  └── config.ini             ← Used by all visualization scripts
 ```
 
 ## Common Commands
@@ -82,14 +92,18 @@ python train.py  # Creates runs/run_YYYYMMDD_HHMM/
 RUN_DIR="runs/run_20241126_120000"  # Replace with actual
 
 # Generate all visualizations
-python visualize_network.py $RUN_DIR
+python visualize_network_v2.py $RUN_DIR
 python plot_fitness.py $RUN_DIR
+python plot_complexity_fitness.py $RUN_DIR  # NEW: Complexity analysis
 python visualize_evolution.py $RUN_DIR
 python demo_best.py $RUN_DIR
 
+# Or generate everything at once
+python visualize_all.py $RUN_DIR
+
 # Useful options
-python visualize_network.py $RUN_DIR --view  # Open last network
-python demo_best.py $RUN_DIR --interactive   # Manual episode triggering
+python visualize_network_v2.py $RUN_DIR --view  # Open last network
+python demo_best.py $RUN_DIR --interactive      # Manual episode triggering
 python visualize_evolution.py $RUN_DIR --fast --compare
 ```
 

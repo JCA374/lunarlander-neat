@@ -140,54 +140,74 @@ class FitnessLogger(neat.reporting.BaseReporter):
                 pickle.dump(best_genome, f)
             saved_best = True
 
-        # Print enhanced educational output
+        # Print BEGINNER-FRIENDLY educational output
         print(f"\n{'='*70}")
-        print(f"📊 GENERATION {self.generation} SUMMARY")
+        print(f"GENERATION {self.generation} / {self.max_generations}")
         print(f"{'='*70}")
 
-        # Fitness with improvement indicator
-        fitness_str = f"  🏆 Best Fitness:    {best_fitness:6.1f}"
+        # Fitness with clear context
+        fitness_str = f"  Best Fitness:    {best_fitness:7.1f}"
         if self.prev_best_fitness is not None:
             improvement = best_fitness - self.prev_best_fitness
             if improvement > 50:
-                fitness_str += f"  [↗️  +{improvement:.1f} 🚀 BREAKTHROUGH!]"
+                fitness_str += f"  (+{improvement:.1f} HUGE LEAP!)"
             elif improvement > 10:
-                fitness_str += f"  [↗️  +{improvement:.1f}]"
+                fitness_str += f"  (+{improvement:.1f} improving)"
             elif improvement < -10:
-                fitness_str += f"  [↘️  {improvement:.1f}]"
+                fitness_str += f"  ({improvement:.1f} worse)"
+            else:
+                fitness_str += f"  (stable)"
         print(fitness_str)
 
-        print(f"  📈 Average Fitness: {avg_fitness:6.1f} (±{std_fitness:.1f})")
-        print(f"  📉 Worst Fitness:   {worst_fitness:6.1f}")
+        print(f"  Average Fitness: {avg_fitness:7.1f}")
+        print(f"  Worst Fitness:   {worst_fitness:7.1f}")
+        print()
 
-        # Species info with diversity context
-        species_str = f"  🧬 Species Count:   {num_species}"
+        # Species info with CLEAR explanations
+        print(f"  Species:         {num_species}")
         if num_species == 1:
-            species_str += "  (low diversity - population converging)"
-        elif num_species > 5:
-            species_str += "  (high diversity - exploring many strategies)"
-        print(species_str)
+            print("    -> Only 1 species (all networks similar)")
+        elif num_species <= 3:
+            print("    -> Low diversity (population converging)")
+        elif num_species <= 5:
+            print("    -> Moderate diversity (healthy exploration)")
+        else:
+            print("    -> High diversity (trying many strategies)")
+        print()
 
-        # Complexity with change indicator
-        complexity_str = f"  🧠 Network Complexity: {avg_nodes:.1f} nodes"
+        # Network complexity with SIMPLE explanation
+        print(f"  Network Size:    {avg_nodes:.1f} nodes, {avg_connections:.1f} connections")
+        print(f"    -> Largest:    {max_nodes} nodes, {max_connections} connections")
+
         if self.prev_avg_nodes is not None:
             node_change = avg_nodes - self.prev_avg_nodes
             if node_change > 1.0:
-                complexity_str += f" (↗️  +{node_change:.1f} complexifying)"
+                print(f"    -> Growing (+{node_change:.1f} nodes - adding complexity)")
             elif node_change < -1.0:
-                complexity_str += f" (↘️  {node_change:.1f} pruning)"
-        complexity_str += f", {avg_connections:.1f} connections"
-        print(complexity_str)
-        print(f"     - Max: {max_nodes} nodes, {max_connections} connections")
+                print(f"    -> Shrinking ({node_change:.1f} nodes - simplifying)")
+            else:
+                print(f"    -> Stable size (fine-tuning weights)")
+        print()
 
-        # Save info
-        if saved_best:
-            print(f"  💾 Saved: g{self.generation:03d}.pkl")
+        # VISUAL progress bar
+        percent_of_target = (best_fitness / config.fitness_threshold * 100) if config.fitness_threshold > 0 else 0
+        bar_length = 40
+        filled = int(bar_length * min(percent_of_target, 100) / 100)
+        bar = '█' * filled + '░' * (bar_length - filled)
+        print(f"  Progress: [{bar}] {percent_of_target:.1f}%")
+        print(f"  Target:   {config.fitness_threshold:.0f} (LunarLander solved at 200+)")
+
+        if best_fitness >= config.fitness_threshold:
+            print(f"\n  *** SOLVED! Target reached! ***")
+        elif best_fitness >= 200:
+            print(f"  (Already good enough to land! Going for higher score...)")
+        elif best_fitness >= 0:
+            print(f"  (Learning to land - getting positive scores!)")
         else:
-            next_save = ((self.generation // self.save_best_every) + 1) * self.save_best_every
-            print(f"  💾 Next save at generation {next_save:03d}")
+            print(f"  (Still crashing - learning basics...)")
+        print()
 
-        # Progress estimation
+        # Time info
         elapsed = time.time() - self.start_time
         if self.generation > 0:
             avg_gen_time = elapsed / (self.generation + 1)
@@ -195,14 +215,11 @@ class FitnessLogger(neat.reporting.BaseReporter):
             est_remaining = avg_gen_time * remaining_gens
             hours = int(est_remaining // 3600)
             minutes = int((est_remaining % 3600) // 60)
-            print(f"  ⏱️  This gen: {gen_time:.1f}s | Est. remaining: {hours}h {minutes}m")
+            print(f"  Time/gen: {gen_time:.1f}s | Est. remaining: {hours}h {minutes}m")
 
-        # Target check
-        percent_of_target = (best_fitness / config.fitness_threshold * 100) if config.fitness_threshold > 0 else 0
-        print(f"  🎯 Progress: {percent_of_target:.1f}% of target ({config.fitness_threshold})")
-
-        if best_fitness >= config.fitness_threshold:
-            print(f"\n  🎉 SOLVED! Reached target fitness!")
+        # Save info
+        if saved_best:
+            print(f"  Saved: g{self.generation:03d}.pkl")
 
         print(f"{'='*70}\n")
 
@@ -358,17 +375,22 @@ def run_neat(config_file, max_generations=5000, save_best_every=10):
     run_dirs = create_run_structure(run_dir)
 
     print("\n" + "="*70)
-    print("🚀 NEAT LUNARLANDER TRAINING (Enhanced)")
+    print("NEAT LUNARLANDER TRAINING - Beginner-Friendly Mode")
     print("="*70)
-    print(f"📁 Run directory: {run_dir}")
-    print(f"🎯 Target fitness: {target_fitness}")
-    print(f"🔄 Max generations: {max_generations}")
-    print(f"💾 Save best genome every: {save_best_every} generations")
-    print(f"📊 New features:")
-    print(f"   - Organized directory structure")
-    print(f"   - Species tracking")
-    print(f"   - Key moment detection")
-    print(f"   - Enhanced progress reporting")
+    print(f"\nWhat is this?")
+    print(f"  This program teaches neural networks to land a lunar lander")
+    print(f"  using NEAT - a genetic algorithm that evolves both the")
+    print(f"  network structure AND the connection weights!")
+    print(f"\nTraining Setup:")
+    print(f"  Run directory:  {run_dir}")
+    print(f"  Population:     {config.pop_size} networks per generation")
+    print(f"  Target score:   {target_fitness:.0f} (200+ = successful landing)")
+    print(f"  Max iterations: {max_generations} generations")
+    print(f"\nWhat to watch for:")
+    print(f"  - Networks start simple (just inputs -> outputs)")
+    print(f"  - They gradually add nodes and connections")
+    print(f"  - Fitness improves as they learn to land")
+    print(f"  - Training saves snapshots every {save_best_every} generations")
     print("="*70 + "\n")
 
     # Create population
@@ -403,50 +425,59 @@ def run_neat(config_file, max_generations=5000, save_best_every=10):
 
     # Save final results
     print("\n" + "="*70)
-    print("✅ TRAINING COMPLETE!")
+    print("TRAINING COMPLETE!")
     print("="*70)
     hours = int(total_time // 3600)
     minutes = int((total_time % 3600) // 60)
     seconds = int(total_time % 60)
-    print(f"⏱️  Total training time: {hours}h {minutes}m {seconds}s")
-    print(f"\n🏆 Best genome has fitness: {winner.fitness:.1f}")
-    print(f"🧠 Best genome has {len(winner.nodes)} nodes and {len(winner.connections)} connections")
+    print(f"\nTotal time: {hours}h {minutes}m {seconds}s")
+    print(f"\nFinal Results:")
+    print(f"  Best fitness:        {winner.fitness:.1f}")
+    print(f"  Network complexity:  {len(winner.nodes)} nodes, {len(winner.connections)} connections")
 
-    # Check if target reached
+    # Check if target reached with context
     if winner.fitness >= target_fitness:
-        print(f"🎉 TARGET REACHED! ({target_fitness})")
+        print(f"\n  *** SUCCESS! Target of {target_fitness:.0f} reached! ***")
+        print(f"  The network learned to land the lunar lander successfully!")
+    elif winner.fitness >= 200:
+        print(f"\n  Great! Fitness of {winner.fitness:.1f} is above 200 (successful landing)")
+        print(f"  Target was {target_fitness:.0f}, which is just a higher score goal")
     else:
         percent = (winner.fitness / target_fitness * 100) if target_fitness > 0 else 0
-        print(f"📊 Reached {percent:.1f}% of target ({target_fitness})")
+        print(f"\n  Reached {percent:.1f}% of target ({target_fitness:.0f})")
+        print(f"  Consider training longer or adjusting config parameters")
 
     # Save winner
     winner_file = os.path.join(run_dirs['genomes'], 'winner.pkl')
     with open(winner_file, 'wb') as f:
         pickle.dump(winner, f)
-    print(f"\n💾 Saved winner to: genomes/winner.pkl")
+    print(f"\nSaved files:")
+    print(f"  - Winner network: genomes/winner.pkl")
 
     # Save statistics
     stats_file = os.path.join(run_dirs['data'], 'stats.pkl')
     with open(stats_file, 'wb') as f:
         pickle.dump(stats, f)
-    print(f"💾 Saved statistics to: data/stats.pkl")
+    print(f"  - Training stats: data/stats.pkl")
 
     # Save config for later use
     config_copy = os.path.join(run_dir, 'config.ini')
     import shutil
     shutil.copy(config_file, config_copy)
-    print(f"💾 Saved config to: config.ini")
+    print(f"  - Config copy: config.ini")
 
     print("\n" + "="*70)
-    print("📊 Next steps:")
+    print("What to do next:")
     print("="*70)
-    print(f"  🎨 Generate all visualizations:")
-    print(f"     python visualize_all.py {run_dir}")
-    print(f"\n  📈 Or run individually:")
-    print(f"     python visualize_network_v2.py {run_dir}")
-    print(f"     python plot_fitness.py {run_dir}")
-    print(f"     python visualize_evolution.py {run_dir}")
-    print(f"     python demo_best.py {run_dir}")
+    print(f"\n1. Watch the best network play:")
+    print(f"   python demo_best.py {run_dir}")
+    print(f"\n2. Generate ALL visualizations at once:")
+    print(f"   python visualize_all.py {run_dir}")
+    print(f"\n3. Or create individual visualizations:")
+    print(f"   python visualize_network_v2.py {run_dir}       # Network diagrams")
+    print(f"   python plot_fitness.py {run_dir}               # Fitness graphs")
+    print(f"   python plot_complexity_fitness.py {run_dir}    # Complexity analysis")
+    print(f"   python visualize_evolution.py {run_dir}        # Evolution animation")
     print("="*70 + "\n")
 
     return winner, run_dir
@@ -460,4 +491,4 @@ if __name__ == '__main__':
         print(f"❌ Error: Config file '{config_path}' not found!")
         exit(1)
 
-    winner, run_dir = run_neat(config_path, max_generations=5000, save_best_every=10)
+    winner, run_dir = run_neat(config_path, max_generations=5000, save_best_every=5)
