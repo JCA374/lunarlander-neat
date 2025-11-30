@@ -49,9 +49,16 @@ All visualization scripts take a `run_dir` as argument and operate on saved arti
   - Uses Pillow to create `neat_evolution.gif`
   - Optional side-by-side comparison
 
-- **demo_best.py**: Loads winner.pkl → plays LunarLander
+- **demo_best.py**: Loads winner.pkl or specific genome → plays LunarLander
+  - Accepts run directory OR specific genome file path
+  - Falls back to main config if training still running
   - Renders with `gymnasium` environment
   - Interactive mode available
+
+- **watch_progress.py**: Quick helper to test latest genome during training
+  - Automatically finds most recent saved genome
+  - Perfect for monitoring training progress
+  - Shows generation number and performance
 
 ### Data Flow
 

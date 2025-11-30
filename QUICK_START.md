@@ -61,8 +61,30 @@ This creates:
 
 ### Watch Your Network Play
 
+After training completes:
 ```bash
 python demo_best.py runs/run_20251130_153000
+```
+
+**NEW! Watch Progress During Training:**
+```bash
+# Automatically finds and tests the latest saved genome
+python watch_progress.py runs/run_20251130_153000
+
+# With visualization (slower)
+python watch_progress.py runs/run_20251130_153000 --render
+
+# Test more episodes
+python watch_progress.py runs/run_20251130_153000 --episodes 10
+```
+
+**Watch a Specific Generation:**
+```bash
+# Test generation 100 specifically
+python demo_best.py runs/run_20251130_153000/genomes/g100.pkl
+
+# With rendering
+python demo_best.py runs/run_20251130_153000/genomes/g100.pkl --episodes 5
 ```
 
 You'll see the LunarLander environment with your trained network controlling it!

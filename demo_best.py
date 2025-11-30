@@ -197,9 +197,10 @@ def demo_interactive(genome, config):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("\n❌ Usage: python demo_best.py <run_directory> [options]")
-        print("\nExample:")
+        print("\n❌ Usage: python demo_best.py <run_directory_or_genome_file> [options]")
+        print("\nExamples:")
         print("  python demo_best.py runs/run_20241126_120000")
+        print("  python demo_best.py runs/run_20241126_120000/genomes/g100.pkl")
         print("\nOptions:")
         print("  --episodes <n>    Number of episodes to run (default: 5)")
         print("  --no-render       Don't render the environment")
@@ -210,20 +211,52 @@ if __name__ == '__main__':
         print()
         sys.exit(1)
 
-    run_dir = sys.argv[1]
+    path_arg = sys.argv[1]
 
-    if not os.path.exists(run_dir):
-        print(f"\n❌ Error: Directory '{run_dir}' not found!\n")
+    if not os.path.exists(path_arg):
+        print(f"\n❌ Error: Path '{path_arg}' not found!\n")
         sys.exit(1)
 
-    # Get paths (supports both old and new structures)
-    paths = get_run_paths(run_dir)
+    # Determine if it's a genome file or run directory
+    if path_arg.endswith('.pkl') and os.path.isfile(path_arg):
+        # It's a genome file - find the run directory
+        genome_file = path_arg
 
-    # Load config
-    config_file = paths['config']
+        # Navigate up to find run directory (genome files are in genomes/ subdirectory)
+        if '/genomes/' in path_arg:
+            run_dir = path_arg.split('/genomes/')[0]
+        else:
+            # Fallback: use parent directory
+            run_dir = os.path.dirname(path_arg)
+
+        print(f"\n📄 Loading specific genome: {os.path.basename(genome_file)}")
+        print(f"📁 Run directory: {run_dir}\n")
+
+        # Get paths for config
+        paths = get_run_paths(run_dir)
+        config_file = paths['config']
+        winner_file = genome_file
+    else:
+        # It's a run directory
+        run_dir = path_arg
+
+        # Get paths (supports both old and new structures)
+        paths = get_run_paths(run_dir)
+        config_file = paths['config']
+        winner_file = paths['winner']
+
+    # Load config (try run config, fallback to main config if training is still running)
     if not os.path.exists(config_file):
-        print(f"❌ Config file not found: {config_file}")
-        sys.exit(1)
+        # Training might still be running - try main config
+        fallback_config = 'neat-config.ini'
+        if os.path.exists(fallback_config):
+            print(f"⚠️  Run config not found (training in progress?)")
+            print(f"   Using main config: {fallback_config}\n")
+            config_file = fallback_config
+        else:
+            print(f"❌ Config file not found: {config_file}")
+            print(f"   And fallback config not found: {fallback_config}")
+            sys.exit(1)
 
     config = neat.Config(
         neat.DefaultGenome,
@@ -233,12 +266,10 @@ if __name__ == '__main__':
         config_file
     )
 
-    # Load winner
-    winner_file = paths['winner']
+    # Load genome
     if not os.path.exists(winner_file):
-        print(f"❌ Winner file not found: {winner_file}")
-        print("💡 Training might not have completed. Try loading a specific generation:")
-        print(f"   python demo_best.py {run_dir} --generation <n>")
+        print(f"❌ Genome file not found: {winner_file}")
+        print("💡 Training might not have completed or file path is incorrect.")
         sys.exit(1)
 
     with open(winner_file, 'rb') as f:
