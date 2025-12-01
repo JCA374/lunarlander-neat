@@ -39,7 +39,7 @@ def plot_complexity_vs_fitness(run_dir, show=False):
     complexity_df = pd.read_csv(complexity_file)
 
     # Get target fitness from config
-    target_fitness = 250
+    target_fitness = 299
     config_file = os.path.join(run_dir, 'config.ini')
     if os.path.exists(config_file):
         cfg = configparser.ConfigParser()
