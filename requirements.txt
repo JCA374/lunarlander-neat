@@ -1,6 +1,7 @@
 neat-python==0.92
 gymnasium[box2d]==0.29.1
-matplotlib==3.8.2
-graphviz==0.20.1
-numpy==1.26.3
-pillow==10.2.0
+swig
+numpy>=1.26,<2
+matplotlib>=3.8
+pillow>=10.2
+graphviz>=0.20

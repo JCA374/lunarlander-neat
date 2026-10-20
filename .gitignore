@@ -1,35 +1,27 @@
-# Virtual Environment
-venv/
+# Virtual environment
 .venv/
-env/
-*.virtualenv
+venv/
 
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
 
-# Training outputs
-#runs/
-*.pkl
-checkpoints/
-#*.csv
+# Training outputs: runs are local; the published run is whitelisted below
+runs/*
+!runs/run_20261020/
+runs/*/checkpoints/
+results/**/flights.jsonl.gz
+*.log
 
-# Jupyter
-.ipynb_checkpoints/
+# Video build products (rendered outputs live in docs/)
+video_tools/cache/
+voice/*/audio/
+*.wav
+*.m4b
 
-# IDE
+# IDE / OS
 .vscode/
 .idea/
 *.swp
-*.swo
-*~
-
-# OS
 .DS_Store
-Thumbs.db
-
-# Logs
-*.log
+.claude/settings.local.json

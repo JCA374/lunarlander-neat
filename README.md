@@ -1,352 +1,87 @@
-# NEAT LunarLander - Visual Learning Project
+# NEAT Lunar Lander
 
-A pedagogical implementation of **NEAT** (NeuroEvolution of Augmenting Topologies) solving the **LunarLander-v2** environment, with a strong focus on **visualization** and **understanding** the algorithm.
+A small, readable example of **NEAT** (NeuroEvolution of Augmenting Topologies, Stanley &
+Miikkulainen 2002) learning to land Gymnasium's **LunarLander-v2**. NEAT evolves both the
+weights *and the shape* of a neural network. Every network starts as the simplest possible
+one, with the 8 inputs wired straight to the 4 actions. Evolution adds hidden nodes and
+connections only when they help.
 
-## 🎯 Project Goals
+**Explainer video, lessons and pictures:** https://jca374.github.io/lunarlander-neat/
 
-This project prioritizes **pedagogy over performance**:
-
-- 🔍 **Beautiful visualizations** of neural network evolution
-- 📊 **Comprehensive statistics** tracking
-- 🎓 **Educational code** with clear comments
-- 🎨 **Publication-quality graphics**
-- 🎮 **Interactive demos** to see the agent in action
-
-Perfect for learning how NEAT evolves neural networks from simple to complex!
-
-## 🧬 What is NEAT?
-
-NEAT (NeuroEvolution of Augmenting Topologies) is a genetic algorithm that evolves neural networks. Unlike traditional neural networks:
-
-- **Starts simple**: Begins with minimal networks (just inputs → outputs)
-- **Grows structure**: Adds nodes and connections through mutation
-- **Evolves topology**: Both weights AND network structure evolve
-- **Maintains diversity**: Uses speciation to protect innovation
-
-## 🚀 Quick Start
-
-### 1. Install Dependencies
+## Quick start
 
 ```bash
-# Create virtual environment (optional but recommended)
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python3 -m venv .venv && source .venv/bin/activate
+pip install swig && pip install -r requirements.txt
 
-# Install packages
-pip install -r requirements.txt
-
-# On Ubuntu/Debian, you may also need graphviz:
-sudo apt-get install graphviz
+python train.py                      # ~1 h on 8 cores; writes runs/run_YYYYMMDD_HHMMSS/
+python demo.py runs/<run>            # watch the winner fly
+python visualize_all.py runs/<run>   # plots, network pictures, evaluation
 ```
 
-### 2. Train the Agent
+## How it works
+
+| Step | What happens | Where |
+|---|---|---|
+| Genome → network | A genome is a list of node genes and connection genes. neat-python turns it into a feed-forward network. | `neat_lander/env.py` |
+| Acting | The network gets the lander's 8 observations and outputs 4 scores. The highest score is the action. | `choose_action` |
+| Fitness | The average reward over 5 episodes. Every genome in a generation flies the **same** 5 starts, and the starts change each generation. | `neat_lander/fitness.py` |
+| Validation | Each generation's champion also flies **100 episodes no genome trained on**. "Solved" means an average of at least 200 there, not on a lucky training score. | `EvolutionRecorder` |
+| Evolution | neat-python speciates, selects within species, does crossover and mutation (add node, add connection, change weights). | `neat-config.ini` |
+
+The config is classic NEAT. It starts with `num_hidden = 0` and `initial_connection = full_direct`, uses one fixed `tanh` activation, a population of 150 and speciation with `compatibility_threshold = 2.2`. Each setting is commented in [`neat-config.ini`](neat-config.ini).
+
+## Scripts
+
+| Script | Purpose |
+|---|---|
+| `train.py` | Train. Options: `--generations 500 --episodes 5 --workers 8`; `--resume runs/<run>/checkpoints/gen-N` continues an interrupted run. |
+| `evaluate.py` | Test a genome on 100 unseen episodes: landing / crash / timeout rates and average reward. |
+| `demo.py` | Watch a genome fly. `--generation N` picks the champion of generation N. |
+| `plots.py` | `plots/training.png` (fitness, species, network size, landing) and `plots/species.png`. |
+| `networks.py` | Draws the champion network every 10 generations and makes `networks/evolution.gif`. |
+| `visualize_all.py` | Runs plots, networks and evaluate. |
+| `experiments/` | Failure analysis: `record_flights.py` flies 1,000 analysis episodes, then `analyze_flights.py` writes `results/failure_analysis/<run>/report.html`, covering what failure looks like, where it happens, what drifts before it and what predicts it. |
+| `video_tools/` | Renders the explainer and lesson videos and the web page images (see below). |
+
+## What a run saves
+
+Everything is written while training runs, so an interrupted run is still usable.
+
+```
+runs/<run>/
+  config.ini                 the NEAT config, copied when the run starts
+  data/fitness.csv           best / mean / worst fitness and species count per generation
+  data/complexity.csv        hidden nodes and connections (population and champion)
+  data/species.csv           size, age, best fitness and stagnation of each species per generation
+  data/validation.csv        each generation's champion on 100 unseen episodes
+  data/population.csv.gz     every genome of every generation: fitness, species, size, parents
+  data/innovations.json      the generation each connection and node first appeared
+  genomes/champions.pkl      the best genome of every generation
+  genomes/winner.pkl/.json   the champion with the best validation score
+  populations/pop_gNNNN.pkl.gz  whole populations (generations 0-10, then every 10th)
+  checkpoints/gen-N          for --resume
+```
+
+## Videos and web page
+
+`docs/` is the GitHub Pages site: an explainer video, 7 lessons and the page images. All of it is rendered from a training run with Pillow and ffmpeg:
 
 ```bash
-python train.py
+python video_tools/make_explainer.py runs/<run>       # docs/explainer.mp4 + docs/img/*
+python video_tools/make_lessons.py runs/<run>         # docs/lessons/*
 ```
 
-This will:
-- Train for up to 5000 generations (or until fitness reaches 270)
-- Save best genome every 10 generations (configurable)
-- Log detailed statistics
-- Create a timestamped run directory in `runs/`
-
-Expected training time: varies; for quick smoke tests lower `max_generations` (e.g., 100) or raise `save_best_every` to reduce I/O.
-
-### 3. Visualize Results
-
-After training completes, you'll see commands to visualize the results. For example:
+The narration scripts are in `video_tools/narration/`, with one `## <scene>[.n]` section per beat. They are voiced locally with Kokoro TTS and checked with Whisper using the `voice-text` pipeline:
 
 ```bash
-# Replace with your actual run directory
-RUN_DIR="runs/run_20241126_120000"
-
-# Visualize all network topologies
-python visualize_network.py $RUN_DIR
-
-# Plot training statistics
-python plot_fitness.py $RUN_DIR
-
-# Create animated GIF of network evolution
-python visualize_evolution.py $RUN_DIR
-
-# Watch the best agent play!
-python demo_best.py $RUN_DIR
+V=~/.claude/skills/voice-text/scripts/voice.sh
+$V new video_tools/narration/explainer.md --kind voiceover --slug explainer
+$V prep voice/explainer && $V narrate voice/explainer && $V listen voice/explainer && $V export voice/explainer
 ```
 
-## 📁 Project Structure
+Without narration, the videos render silent with default timings.
 
-```
-lunarlander-neat/
-├── train.py                  # Main training script
-├── visualize_network.py      # Create network diagrams
-├── plot_fitness.py           # Plot training statistics
-├── visualize_evolution.py    # Create evolution GIF
-├── demo_best.py             # Watch the trained agent
-├── neat-config.ini          # NEAT configuration
-├── requirements.txt         # Python dependencies
-└── runs/                    # Training outputs
-    └── run_YYYYMMDD_HHMM/
-        ├── winner.pkl              # Best genome overall
-        ├── best_genome_g{N}.pkl    # Best genome per generation
-        ├── config.ini              # Copy of config used
-        ├── stats.pkl               # Statistics object
-        ├── fitness_history.csv     # Fitness data
-        ├── complexity_history.csv  # Network complexity data
-        ├── training_plots.png      # Comprehensive plots
-        ├── fitness_plot.png        # Simple fitness plot
-        ├── neat_evolution.gif      # Animated network evolution
-        └── networks/               # Network diagrams
-            ├── net_g000.png
-            ├── net_g001.png
-            └── ...
-```
+## Requirements
 
-## 🎨 Visualizations Explained
-
-### Network Diagrams
-
-The network visualizations show:
-
-- **Node colors**:
-  - 🔵 **Blue**: Input nodes (x/y position & velocity, angle, angular velocity, leg contacts)
-  - 🔴 **Red**: Output nodes (discrete thrusters)
-  - 🟢 **Green**: Hidden nodes (evolved by NEAT)
-
-- **Connection colors**:
-  - **Green**: Positive weights (excitatory)
-  - **Red**: Negative weights (inhibitory)
-  - **Darker = stronger**: Color intensity shows weight magnitude
-
-- **Connection style**:
-  - **Solid**: Enabled connection
-  - **Dashed**: Disabled connection
-  - **Thickness**: Proportional to weight strength
-
-### Training Plots
-
-The fitness plots show:
-
-1. **Fitness Evolution**: How the best, average, and worst fitness improve
-2. **Standard Deviation**: Population diversity
-3. **Species Diversity**: Number of species over time
-4. **Network Complexity**: Average nodes and connections
-
-### Evolution GIF
-
-Watch the network grow from generation 0 to the final solution! You'll see:
-
-- Initial simple connections (inputs → output)
-- Emergence of hidden nodes
-- Complexification as the task demands
-- Optimization of connection weights
-
-## 🎮 LunarLander Environment
-
-The LunarLander-v2 problem:
-
-- **Goal**: Soft-land the lunar module on the landing pad
-- **Inputs (8)**:
-  1. X position
-  2. Y position
-  3. X velocity
-  4. Y velocity
-  5. Angle
-  6. Angular velocity
-  7. Left leg ground contact (boolean)
-  8. Right leg ground contact (boolean)
-- **Actions (4)**:
-  0. Do nothing
-  1. Fire left engine
-  2. Fire main engine
-  3. Fire right engine
-- **Success**: Average reward ≥ 270 over episodes
-- **Challenge**: Multi-objective control (position, velocity, angle, fuel)
-
-## ⚙️ Configuration Explained
-
-Key settings in `neat-config.ini`:
-
-```ini
-pop_size = 150                   # Larger population for harder task
-fitness_threshold = 270.0        # LunarLander considered "solved"
-num_inputs = 8                   # LunarLander observations
-num_outputs = 4                  # Discrete thrusters (argmax over outputs)
-activation_default = tanh        # Smooth activation function
-
-# Mutation rates tuned for gradual evolution without bloat
-node_add_prob = 0.2             # Slightly lower to prevent bloat
-conn_add_prob = 0.5             # 50% chance to add connection
-weight_mutate_rate = 0.8        # 80% chance to mutate weights
-```
-
-These settings prioritize **observable evolution** over fast training.
-
-## 🔧 Advanced Usage
-
-### Adjust Generation Count
-
-Edit `train.py` or call directly with a custom limit (default is 5000; use a lower number for smoke tests):
-
-```python
-winner, run_dir = run_neat('neat-config.ini', max_generations=5000, save_best_every=10)
-```
-
-### Visualize Specific Generation
-
-```bash
-# Create network diagram for generation 50
-python -c "
-import pickle, neat
-from visualize_network import visualize_network
-
-config = neat.Config(...)  # Load config
-with open('runs/run_xxx/best_genome_g050.pkl', 'rb') as f:
-    genome = pickle.load(f)
-visualize_network(genome, config, 'gen_50', view=True)
-"
-```
-
-### Interactive Demo Mode
-
-```bash
-python demo_best.py $RUN_DIR --interactive
-```
-
-This lets you trigger episodes on-demand and explore the agent's performance.
-
-### Create Side-by-Side Comparison
-
-```bash
-python visualize_evolution.py $RUN_DIR --compare
-```
-
-Creates a side-by-side comparison of networks from different generations.
-
-## 📚 Learning Resources
-
-### Understanding NEAT
-
-1. **Original Paper**: [Evolving Neural Networks through Augmenting Topologies](http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf)
-2. **NEAT-Python Docs**: [neat-python.readthedocs.io](https://neat-python.readthedocs.io/)
-3. **LunarLander Environment**: [Gymnasium LunarLander-v2](https://gymnasium.farama.org/environments/box2d/lunar_lander/)
-
-### Key NEAT Concepts
-
-- **Speciation**: Groups similar genomes to protect innovation
-- **Historical Markings**: Tracks gene history for crossover
-- **Complexification**: Networks start simple and grow
-- **Structural Innovation**: Both topology and weights evolve
-
-## 🎓 Educational Features
-
-This implementation includes several pedagogical enhancements:
-
-1. **Verbose Output**: Clear progress indicators during training
-2. **Generation Summaries**: Detailed statistics after each generation
-3. **Visual Evolution**: See networks grow in complexity
-4. **Performance Analysis**: Understand what makes good networks
-5. **Interactive Exploration**: Play with the trained agent
-
-## 🐛 Troubleshooting
-
-### Import Errors
-
-```bash
-# Make sure all dependencies are installed
-pip install -r requirements.txt
-
-# On Ubuntu/Debian, install graphviz system package
-sudo apt-get install graphviz
-```
-
-### Training Not Improving
-
-- Check `neat-config.ini` mutation rates
-- Try increasing population size
-- Increase max generations
-- Check fitness evaluation in `train.py`
-
-### Visualization Issues
-
-```bash
-# Make sure you ran training first
-python train.py
-
-# Then run visualization on the output directory
-python visualize_network.py runs/run_YYYYMMDD_HHMM/
-```
-
-### GIF Creation Fails
-
-Make sure Pillow is installed:
-```bash
-pip install pillow
-```
-
-## 🎯 Next Steps
-
-After mastering this project:
-
-1. **Try harder environments**: Lunar Lander, Mountain Car, Acrobot
-2. **Experiment with config**: Different mutation rates, population sizes
-3. **Add recurrence**: Change `feed_forward = False` to allow cycles
-4. **Compare with other methods**: Try DQN, PPO, A2C on same problem
-5. **Visualize activation patterns**: Show neuron activations during play
-
-## 📖 Code Structure
-
-### `train.py`
-
-- `eval_genome()`: Evaluates a single genome
-- `eval_genomes()`: Evaluates entire population
-- `FitnessLogger`: Custom reporter for detailed logging
-- `run_neat()`: Main training loop
-
-### `visualize_network.py`
-
-- `visualize_network()`: Creates single network diagram
-- `visualize_all_generations()`: Processes all saved genomes
-
-### `plot_fitness.py`
-
-- Loads CSV files with statistics
-- Creates comprehensive multi-plot figure
-- Shows fitness, diversity, and complexity
-
-### `visualize_evolution.py`
-
-- Combines network PNGs into animated GIF
-- Creates side-by-side comparisons
-
-### `demo_best.py`
-
-- `run_winner()`: Runs trained agent
-- `analyze_network()`: Analyzes network structure
-- `demo_interactive()`: Interactive demo mode
-
-## 🤝 Contributing
-
-This is an educational project! Feel free to:
-
-- Add more visualization options
-- Try different environments
-- Improve documentation
-- Share your results!
-
-## 📝 License
-
-Educational project - free to use and modify for learning purposes.
-
-## 🌟 Acknowledgments
-
-- **NEAT Algorithm**: Kenneth O. Stanley and Risto Miikkulainen
-- **neat-python**: CodeReclaimers
-- **Gymnasium**: Farama Foundation
-- **Graphviz**: AT&T Labs Research
-
----
-
-**Happy Learning! 🎓🧬🤖**
-
-Remember: The goal is to **understand** NEAT, not just to solve LunarLander quickly. Take time to explore the visualizations and see how evolution finds solutions!
+Python 3.12, neat-python 0.92, gymnasium 0.29.1 with Box2D (needs `swig`), numpy, matplotlib and Pillow. Rendering the videos also needs ffmpeg and the DejaVu fonts.

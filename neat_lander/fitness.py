@@ -1,0 +1,97 @@
+"""Fitness: how well does a genome fly?
+
+fitness = the average LunarLander reward over a few episodes. Every genome of a generation flies the
+*same* starting positions (seeds), so they are compared fairly; the seeds change every generation, so
+nobody can specialise on one start. Validation uses 100 fixed seeds that training never sees.
+"""
+
+import multiprocessing as mp
+
+import numpy as np
+from neat.reporting import BaseReporter
+
+from .env import make_env, make_net, run_episode
+
+TRAIN_SEED_BASE = 1234          # training seeds for generation g come from rng(TRAIN_SEED_BASE + g)
+TRAIN_SEED_MAX = 10**9          # training seeds are drawn below this ...
+VALIDATION_SEEDS = [TRAIN_SEED_MAX + i for i in range(100)]   # ... validation seeds start at it
+
+
+def training_seeds(generation, episodes):
+    rng = np.random.default_rng(TRAIN_SEED_BASE + generation)
+    return [int(s) for s in rng.integers(0, TRAIN_SEED_MAX, episodes)]
+
+
+def fly(genome, config, seeds):
+    """Fly a genome on each seed; returns a summary dict (the mean reward is the fitness)."""
+    net = make_net(genome, config)
+    env = make_env()
+    eps = [run_episode(net, s, env=env) for s in seeds]
+    env.close()
+    return summarize(eps)
+
+
+def summarize(eps):
+    rewards = np.array([e['reward'] for e in eps])
+    return {'fitness': float(rewards.mean()),
+            'std': float(rewards.std()),
+            'landed': float(np.mean([e['outcome'] == 'landed' for e in eps])),
+            'crashed': float(np.mean([e['outcome'] == 'crashed' for e in eps])),
+            'steps': float(np.mean([e['steps'] for e in eps]))}
+
+
+# --- multiprocessing workers (the config is sent once per worker, not once per genome) ---------
+
+_config = None
+
+
+def _init_worker(config):
+    global _config
+    _config = config
+
+
+def _fly_job(args):
+    genome, seeds = args
+    return fly(genome, _config, seeds)
+
+
+class Evaluator(BaseReporter):
+    """The fitness function passed to `Population.run`, flying genomes on all CPU cores.
+
+    It is also a reporter, so neat tells it the generation number (which picks the seeds), and it
+    keeps each genome's summary in `self.results` for the logger.
+    """
+
+    def __init__(self, config, episodes=5, workers=None):
+        self.episodes = episodes
+        self.generation = 0
+        self.results = {}
+        self.pool = mp.Pool(workers or mp.cpu_count(), initializer=_init_worker, initargs=(config,))
+
+    def start_generation(self, generation):
+        self.generation = generation
+
+    def __call__(self, genomes, config):
+        seeds = training_seeds(self.generation, self.episodes)
+        summaries = self.pool.map(_fly_job, [(g, seeds) for _, g in genomes])
+        self.results = {}
+        for (gid, genome), s in zip(genomes, summaries):
+            genome.fitness = s['fitness']
+            self.results[gid] = s
+
+    def validate(self, genome, seeds=VALIDATION_SEEDS):
+        """Fly one genome on many seeds in parallel; returns the summary."""
+        chunks = [list(c) for c in np.array_split(seeds, min(len(seeds), self.pool._processes))]
+        parts = self.pool.map(_fly_job, [(genome, c) for c in chunks])
+        weights = np.array([len(c) for c in chunks], dtype=float)
+        out = {k: float(np.average([p[k] for p in parts], weights=weights))
+               for k in ('fitness', 'landed', 'crashed', 'steps')}
+        return out
+
+    def __getstate__(self):
+        # neat checkpoints pickle the species set, which holds the reporters; skip the pool
+        return {'episodes': self.episodes, 'generation': self.generation, 'results': {}, 'pool': None}
+
+    def close(self):
+        self.pool.close()
+        self.pool.join()
