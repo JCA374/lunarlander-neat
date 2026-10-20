@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEAT Lunar Lander</title>
+<meta name="description" content="NEAT evolves the weights and the shape of a neural network that lands Gymnasium's LunarLander. Explainer video, lessons and code.">
+<meta property="og:title" content="NEAT Lunar Lander">
+<meta property="og:description" content="Evolving a neural network, weights and shape, to land on the Moon.">
+<meta property="og:image" content="img/poster.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230b1020'/%3E%3Cpath d='M10 20h12l-2-7h-8z' fill='%23ffb840'/%3E%3Cpath d='M11 20l-3 5M21 20l3 5' stroke='%23ffb840' stroke-width='2'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f7f8fb;
+    --surface: #ffffff;
+    --surface-2: #eef1f7;
+    --text: #141a2e;
+    --muted: #5a6582;
+    --line: #dde2ee;
+    --accent: #b86e00;
+    --accent-bg: #fff3dc;
+    --blue: #2f6fd6;
+    --green: #1d8f55;
+    --code-bg: #0f1530;
+    --code-text: #e8ecf5;
+    --shadow: 0 1px 2px rgba(20, 26, 46, .06), 0 8px 24px rgba(20, 26, 46, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1020;
+      --surface: #131a33;
+      --surface-2: #19223f;
+      --text: #e8ecf5;
+      --muted: #97a3c2;
+      --line: #26304f;
+      --accent: #ffb840;
+      --accent-bg: #2a2410;
+      --blue: #60a8ff;
+      --green: #54d48c;
+      --code-bg: #070b18;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1020;
+    --surface: #131a33;
+    --surface-2: #19223f;
+    --text: #e8ecf5;
+    --muted: #97a3c2;
+    --line: #26304f;
+    --accent: #ffb840;
+    --accent-bg: #2a2410;
+    --blue: #60a8ff;
+    --green: #54d48c;
+    --code-bg: #070b18;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--blue); }
+  img, video { max-width: 100%; height: auto; display: block; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  :not(pre) > code {
+    background: var(--surface-2);
+    padding: .1em .35em;
+    border-radius: 4px;
+    font-size: .92em;
+  }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+
+  header.top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 0;
+  }
+  .brand { font-weight: 700; letter-spacing: -.01em; text-decoration: none; color: var(--text); }
+  .brand span { color: var(--accent); }
+  .top nav { display: flex; gap: 18px; align-items: center; font-size: 15px; }
+  .top nav a { color: var(--muted); text-decoration: none; }
+  .top nav a:hover { color: var(--text); }
+  .theme-btn {
+    display: inline-grid; place-items: center;
+    border: 1px solid var(--line); background: var(--surface); color: var(--text);
+    border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+
+  .hero { padding: 28px 0 8px; }
+  .hero h1 {
+    font-size: clamp(34px, 6vw, 56px); line-height: 1.08; margin: 0 0 14px;
+    letter-spacing: -.02em;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p.lede { font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); max-width: 720px; margin: 0 0 26px; }
+
+  .video-card {
+    border-radius: 14px; overflow: hidden; background: #000;
+    box-shadow: var(--shadow); border: 1px solid var(--line);
+  }
+  .video-card video { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+  .video-note { color: var(--muted); font-size: 14px; margin: 10px 2px 0; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin: 34px 0 10px;
+  }
+  .stat {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; box-shadow: var(--shadow);
+  }
+  .stat b { display: block; font-size: 30px; line-height: 1.1; letter-spacing: -.02em; }
+  .stat span { color: var(--muted); font-size: 14px; }
+  .stat:nth-child(1) b { color: var(--green); }
+  .stat:nth-child(2) b { color: var(--accent); }
+  .stat:nth-child(3) b { color: var(--blue); }
+
+  section { padding: 46px 0 6px; }
+  section h2 {
+    font-size: clamp(25px, 3.4vw, 32px); letter-spacing: -.015em; margin: 0 0 8px;
+  }
+  section h2 .num { color: var(--accent); margin-right: 8px; }
+  section > .wrap > p.intro { color: var(--muted); max-width: 760px; margin-top: 0; }
+
+  .split {
+    display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; align-items: center;
+    margin-top: 18px;
+  }
+  .split.flip > :first-child { order: 2; }
+  .shot {
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow);
+  }
+  .split p { margin: 0 0 12px; }
+  .split ul, .split ol { margin: 0 0 12px; padding-left: 20px; }
+  .split li { margin-bottom: 6px; }
+
+  pre {
+    background: var(--code-bg); color: var(--code-text);
+    border-radius: 10px; padding: 14px 16px; overflow-x: auto;
+    font-size: 14.5px; line-height: 1.55; margin: 0 0 14px;
+  }
+  pre .c { color: #8b97b8; }
+  pre .k { color: #ffb840; }
+  pre .g { color: #54d48c; }
+  pre .b { color: #60a8ff; }
+
+  .loop {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 22px 0 6px;
+    counter-reset: step;
+  }
+  .loop div {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+    position: relative; box-shadow: var(--shadow);
+  }
+  .loop div::before {
+    counter-increment: step; content: counter(step);
+    display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent-bg); color: var(--accent); font-weight: 700; font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .loop b { display: block; margin-bottom: 2px; }
+  .loop span { color: var(--muted); font-size: 15px; }
+
+  table {
+    border-collapse: collapse; width: 100%; font-size: 15px; margin: 8px 0 14px;
+    background: var(--surface); border-radius: 10px; overflow: hidden;
+  }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--surface-2); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  .table-scroll { overflow-x: auto; }
+
+  .callout {
+    background: var(--accent-bg); border-left: 4px solid var(--accent);
+    border-radius: 8px; padding: 12px 16px; margin: 16px 0;
+  }
+
+  footer {
+    margin-top: 60px; padding: 26px 0 40px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 14px;
+  }
+
+  .tabs {
+    display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin: 4px 0 0;
+  }
+  .tabs a {
+    padding: 10px 16px; text-decoration: none; color: var(--muted); font-weight: 600;
+    border-bottom: 3px solid transparent; margin-bottom: -1px;
+  }
+  .tabs a[aria-current="page"] { color: var(--text); border-bottom-color: var(--accent); }
+  [hidden] { display: none !important; }
+
+  .lessons { display: grid; grid-template-columns: 270px 1fr; gap: 28px; padding: 28px 0 10px; }
+  .lesson-list { list-style: none; margin: 0; padding: 0; position: sticky; top: 12px; align-self: start; }
+  .lesson-list a {
+    display: grid; grid-template-columns: 30px 1fr; gap: 2px 10px; align-items: baseline;
+    padding: 10px 12px; border-radius: 10px; text-decoration: none; color: var(--text);
+  }
+  .lesson-list a:hover { background: var(--surface-2); }
+  .lesson-list a[aria-current="true"] { background: var(--accent-bg); }
+  .lesson-list .n {
+    grid-row: span 2; display: inline-grid; place-items: center; width: 28px; height: 28px;
+    border-radius: 50%; background: var(--surface-2); color: var(--accent); font-weight: 700; font-size: 14px;
+  }
+  .lesson-list a[aria-current="true"] .n { background: var(--accent); color: var(--bg); }
+  .lesson-list .t { font-weight: 600; line-height: 1.3; }
+  .lesson-list .d { color: var(--muted); font-size: 13.5px; }
+  .lesson h2 { font-size: clamp(25px, 3.4vw, 32px); letter-spacing: -.015em; margin: 0 0 4px; }
+  .lesson h2 .num { color: var(--accent); margin-right: 8px; }
+  .lesson .sub { color: var(--muted); margin: 0 0 16px; }
+  .lesson .points { margin: 20px 0 8px; padding-left: 20px; }
+  .lesson .points li { margin-bottom: 8px; }
+  .lesson details {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 16px; margin: 16px 0;
+  }
+  .lesson summary { cursor: pointer; font-weight: 600; }
+  .lesson details p { color: var(--muted); margin: 10px 0; }
+  .pager { display: flex; justify-content: space-between; gap: 12px; margin: 20px 0 0; }
+  .pager a {
+    flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px;
+    text-decoration: none; color: var(--text); background: var(--surface);
+  }
+  .pager a span { display: block; color: var(--muted); font-size: 13px; }
+  .pager a.next { text-align: right; }
+  .pager a[aria-disabled="true"] { visibility: hidden; }
+
+  @media (max-width: 760px) {
+    .lessons { grid-template-columns: 1fr; }
+    .lesson-list { position: static; display: flex; overflow-x: auto; gap: 6px; padding-bottom: 6px; }
+    .lesson-list a { grid-template-columns: 28px; white-space: nowrap; }
+    .lesson-list .t, .lesson-list .d { display: none; }
+    .split, .split.flip { grid-template-columns: 1fr; }
+    .split.flip > :first-child { order: 0; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .loop { grid-template-columns: 1fr 1fr; }
+    .top nav a.hide-sm { display: none; }
+  }
+</style>
+
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#overview">NEAT <span>Lunar Lander</span></a>
+    <nav>
+      <a class="hide-sm" href="#genome">Genome</a>
+      <a class="hide-sm" href="#run-data">The run</a>
+      <a href="https://github.com/JCA374/lunarlander-neat">GitHub</a>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle color theme"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg></button>
+    </nav>
+  </header>
+  <nav class="tabs" aria-label="Page">
+    <a href="#overview" id="tab-overview">Overview</a>
+    <a href="#lessons" id="tab-lessons">Lessons</a>
+  </nav>
+</div>
+
+<main id="overview">
+<div class="wrap">
+  <div class="hero">
+    <h1>Evolving a network's <em>weights and shape</em></h1>
+    <p class="lede">NEAT (NeuroEvolution of Augmenting Topologies) starts from the simplest possible network
+      and lets evolution add hidden nodes and connections only where they help. Here it learns to land
+      Gymnasium's LunarLander. It uses no gradients and no backpropagation, just a population that improves
+      every generation.</p>
+
+    <div class="video-card">
+      <video controls preload="metadata" poster="img/poster.jpg" playsinline>
+        <source src="explainer.mp4" type="video/mp4">
+        <track kind="captions" src="explainer.vtt" srclang="en" label="English">
+        Your browser can't play this video. <a href="explainer.mp4">Download it instead</a>.
+      </video>
+    </div>
+    <p class="video-note">10-minute narrated explainer (captions in the player menu). Every frame was
+      rendered from this repository's code and its training run. Want it step by step?
+      <a href="#lessons">Take the 7 short lessons →</a></p>
+
+    <div class="stats">
+      <div class="stat"><b>95%</b><span>landing rate on 100 unseen episodes</span></div>
+      <div class="stat"><b>254</b><span>average episode reward (≥ 200 counts as solved)</span></div>
+      <div class="stat"><b>37</b><span>first generation to pass 200 on unseen episodes</span></div>
+      <div class="stat"><b>0 + 17</b><span>hidden nodes + connections in the winner</span></div>
+    </div>
+  </div>
+</div>
+
+<section id="problem">
+  <div class="wrap">
+    <h2><span class="num">1</span>The problem</h2>
+    <p class="intro">The lander starts high above the surface with a random push. It has to touch down
+      softly between the two flags. Gravity pulls it down, and every engine burn costs fuel.</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>The network gets 8 inputs…</th><th>…and scores 4 actions</th></tr>
+        <tr><td>x, y position · horizontal &amp; vertical velocity · angle · angular velocity · left / right leg contact</td>
+            <td>0 do nothing · 1 fire left engine · 2 fire main engine · 3 fire right engine. The highest score fires.</td></tr>
+      </table>
+    </div>
+    <div class="split">
+      <div class="shot"><img src="img/network.jpg" alt="The evolved network flying: input nodes, connections coloured by sign, and the four action scores" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p><strong>The pilot is a neural network.</strong> Inputs on the left, actions on the right. Orange
+          connections are positive and blue ones are negative; thicker means a larger weight. As the lander flies,
+          the nodes light up with their values and the highest action score fires.</p>
+        <p>Nobody designed this network. It has no hidden nodes at all, just 17 of the 32 possible connections, and evolution found every one of them.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="genome">
+  <div class="wrap">
+    <h2><span class="num">2</span>A genome is a recipe for a network</h2>
+    <div class="split flip">
+      <div class="shot"><img src="img/genome.jpg" alt="Node genes and connection genes with innovation numbers next to the network they build" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p>Evolution works on a <strong>genome</strong>: a list of <em>node genes</em> (which neurons exist) and
+          <em>connection genes</em> (from, to, weight, enabled). Reading the list builds the network.</p>
+        <p>Every connection gene carries an <strong>innovation number</strong>, a historical marker given out
+          the first time that connection appears in the population. Genes with the same number in two genomes
+          share an origin. neat-python names each gene by its <code>(from, to)</code> pair, which does the
+          same job.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="mutation">
+  <div class="wrap">
+    <h2><span class="num">3</span>Mutation grows the structure</h2>
+    <div class="split">
+      <div class="shot"><img src="img/mutation.jpg" alt="Add-node mutation: connection 1→4 is switched off and replaced by 1→6 and 6→4" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <ul>
+          <li><strong>Change a weight</strong>: the most common mutation (rate 0.8 per weight).</li>
+          <li><strong>Add a connection</strong>: join two unconnected nodes (probability 0.5 per child).</li>
+          <li><strong>Add a node</strong>: split a connection (probability 0.2). The old gene is switched off,
+            the new incoming connection gets weight 1 and the outgoing one keeps the old weight, so behaviour
+            barely changes.</li>
+        </ul>
+        <p>Connections and nodes can also be deleted, so a network can shrink when parts of it aren't needed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="crossover">
+  <div class="wrap">
+    <h2><span class="num">4</span>Crossover: genes line up by history</h2>
+    <div class="split flip">
+      <div class="shot"><img src="img/crossover.jpg" alt="Two parents' genes aligned by innovation number: matching, disjoint and excess genes, and the child" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p>Line two parents' genes up by innovation number. <strong>Matching</strong> genes are in both.
+          <strong>Disjoint</strong> genes fill a gap in the other parent. <strong>Excess</strong> genes come after
+          the other parent's last gene.</p>
+        <p>The child takes matching genes from either parent at random, and disjoint and excess genes from the
+          fitter parent. However different the two networks look, the child is always a valid network.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="speciation">
+  <div class="wrap">
+    <h2><span class="num">5</span>Speciation protects new ideas</h2>
+    <div class="split">
+      <div class="shot"><img src="img/speciation.jpg" alt="The compatibility distance formula and genomes grouped into species" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p>A new node usually makes a network worse until its weights are tuned. Ranked against everyone, it
+          would be thrown away too soon. So NEAT groups similar genomes into <strong>species</strong> and lets
+          them compete mainly inside their own species.</p>
+        <pre><span class="b">δ</span> = (c₁·D + c₂·Σ|Δw|) / N    <span class="c"># c₁ = 1.0, c₂ = 0.5</span>
+<span class="k">same species</span> if δ &lt; 2.2</pre>
+        <p>D counts the genes that don't match, Σ|Δw| adds up the weight differences of the matching ones, and N is
+          the size of the larger genome. neat-python works this out for connection genes and for node genes
+          (biases) and adds the two. The 2002 paper uses the <em>average</em> weight difference instead; the idea is the same. Each
+          species shares its offspring among its members. A species that doesn't improve for 20 generations
+          dies out.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="loop">
+  <div class="wrap">
+    <h2><span class="num">6</span>One generation</h2>
+    <div class="loop">
+      <div><b>Evaluate</b><span>150 genomes each fly 5 episodes; fitness = average reward.</span></div>
+      <div><b>Speciate</b><span>Group similar genomes by compatibility distance.</span></div>
+      <div><b>Select</b><span>Inside each species the best 20% become parents; the 2 best survive unchanged.</span></div>
+      <div><b>Reproduce</b><span>Crossover, then mutation, back to 150 genomes.</span></div>
+    </div>
+    <div class="callout">Every genome in a generation flies the <em>same</em> 5 starts, so the ranking is
+      fair, and the starts change each generation. Because 5 episodes are noisy, each generation's champion
+      also flies <strong>100 episodes no genome ever trained on</strong>. "Solved" means at least 200 there.</div>
+  </div>
+</section>
+
+<section id="run-data">
+  <div class="wrap">
+    <h2><span class="num">7</span>The run, generation by generation</h2>
+    <p class="intro">313 generations × 150 genomes. Every genome of every generation is logged
+      (<code>data/population.csv.gz</code>), along with whole populations every 10 generations, so the run can be replayed.</p>
+    <div class="split">
+      <div class="shot"><img src="img/training.jpg" alt="Fitness of every genome in every generation, coloured by species, with the average and the champion's unseen score" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p><strong>Every genome, every generation.</strong> Each dot is one genome, coloured by species. The
+          green line is each generation's champion on 100 unseen episodes. It first passes 200 at generation
+          37, and the best champion (generation 164) lands 95% of unseen episodes.</p>
+      </div>
+    </div>
+    <div class="split flip">
+      <div class="shot"><img src="img/species.jpg" alt="Stacked area chart of species sizes over the generations" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p><strong>Species over time.</strong> The classic NEAT plot: each band is a species and its height is
+          its share of the population. 27 species appeared over the run. They split off, grew when they
+          did well, and died out when they stagnated.</p>
+      </div>
+    </div>
+    <div class="split">
+      <div class="shot"><img src="img/ghosts.jpg" alt="Flight paths of every genome of one generation from the same start" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p><strong>150 flights, one start.</strong> All genomes of a generation fly the same scenario, drawn as
+          trails coloured by how they ended. Early on almost all of them crash; late in the run most land and the
+          trails bundle into one strategy.</p>
+      </div>
+    </div>
+    <div class="split flip">
+      <div class="shot"><img src="img/growth.jpg" alt="The champion network at a late generation, with connection and hidden-node counts over the run" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p><strong>How the network changed.</strong> It starts fully connected: 32 connections, no hidden nodes. For about 160 generations evolution <em>removed</em> connections; the winner (generation 164) has <strong>no hidden nodes and 17 connections</strong>. Later the population grew to 15+ hidden nodes and 50+ connections, and those networks did <em>worse</em> on unseen episodes. Bigger is not automatically better, which is why NEAT starts minimal and why we select the winner on unseen episodes.</p>
+      </div>
+    </div>
+    <div class="split">
+      <div class="shot"><img src="img/evolution.jpg" alt="The same landing scenario flown by the champion of several generations" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p><strong>Champions over time.</strong> The same start, flown by the champions of different
+          generations. Early champions crash or drift away; later ones slow down, straighten up and land.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="learned">
+  <div class="wrap">
+    <h2><span class="num">8</span>Reading the evolved network</h2>
+    <div class="split flip">
+      <div class="shot"><img src="img/ablation.jpg" alt="Landing rate with each connection switched off, one at a time" loading="lazy" width="1280" height="720"></div>
+      <div>
+        <p>Switch off one connection at a time and fly 40 unseen episodes. 9 of the 17 connections can go
+          with almost no loss, and a few carry the whole skill:</p>
+        <ul><li><code>vy → main</code> (−12.8): falling fast drives the main engine: the brake. Without it: <strong>0%</strong> landings.</li><li><code>angle → left</code> (−7.2): tilt drives the left engine: stays upright. Without it: <strong>5%</strong> landings.</li><li><code>R leg → right / none</code> (−1.4 / +2.4): right leg down: stop firing, do nothing. Without it: <strong>15% / 20%</strong> landings.</li></ul>
+      </div>
+    </div>
+    <div class="callout"><strong>Where it still fails.</strong> On 1,000 more fresh flights the winner lands 96.8%.
+      16 of its 18 crashes end <em>right</em> of the pad, where it tips over on the slope. All 14 timeouts sit on the
+      pad, 8 of them with only the <em>left</em> leg down: the leg sensor the network ignores, so it never settles.
+      Every failure began with a hard sideways push. The full failure analysis is in
+      <code>experiments/</code>.</div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="wrap">
+    <h2><span class="num">9</span>Run it yourself</h2>
+    <pre><span class="c"># setup</span>
+git clone https://github.com/JCA374/lunarlander-neat && cd lunarlander-neat
+python3 -m venv .venv && source .venv/bin/activate
+pip install swig && pip install -r requirements.txt
+
+<span class="c"># evolve (about an hour on 8 cores; every log is written as it goes)</span>
+python train.py
+
+<span class="c"># watch it, test it, plot it</span>
+python demo.py runs/&lt;run&gt;
+python evaluate.py runs/&lt;run&gt;
+python visualize_all.py runs/&lt;run&gt;
+
+<span class="c"># regenerate this page's videos from your own run (narration: see README)</span>
+python video_tools/make_explainer.py runs/&lt;run&gt;
+python video_tools/make_lessons.py runs/&lt;run&gt;</pre>
+  </div>
+</section>
+</main>
+
+<main id="lessons" hidden>
+  <div class="wrap">
+    <div class="lessons">
+      <ol class="lesson-list" id="lessonList"></ol>
+      <article class="lesson" id="lesson">
+        <h2><span class="num" id="lNum">1</span><span id="lTitle"></span></h2>
+        <p class="sub" id="lSub"></p>
+        <div class="video-card">
+          <video id="lVideo" controls preload="metadata" playsinline></video>
+        </div>
+        <ul class="points" id="lPoints"></ul>
+        <details id="lTranscript"><summary>Transcript</summary><div id="lText"></div></details>
+        <div class="pager">
+          <a id="lPrev" href="#"><span>← Previous</span><b></b></a>
+          <a id="lNext" class="next" href="#"><span>Next →</span><b></b></a>
+        </div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<div class="wrap">
+  <footer>
+    Narration: <a href="https://huggingface.co/hexgrad/Kokoro-82M">Kokoro TTS</a> (voice af_heart), rendered
+    locally and checked with Whisper. ·
+    <a href="https://github.com/JCA374/lunarlander-neat">github.com/JCA374/lunarlander-neat</a> ·
+    Built with <a href="https://gymnasium.farama.org/">Gymnasium</a> and
+    <a href="https://github.com/CodeReclaimers/neat-python">neat-python</a> ·
+    Further reading: K. O. Stanley &amp; R. Miikkulainen,
+    <a href="https://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf"><em>Evolving Neural Networks through Augmenting Topologies</em></a> (2002)
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    try {
+      var saved = localStorage.getItem('theme');
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (e) {}
+    document.getElementById('themeBtn').addEventListener('click', function () {
+      var dark = root.getAttribute('data-theme') === 'dark' ||
+        (!root.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+      var next = dark ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+    });
+  })();
+
+  // Tabs + lessons (hash routes: #overview, #<section>, #lessons, #lessons/3)
+  (function () {
+    var POINTS = {
+      1: ['The lander senses 8 numbers: position, velocity, tilt, spin and two leg-contact switches.',
+          'It picks one of 4 actions: nothing, left engine, main engine, right engine.',
+          'The game rewards approaching the pad and landing (+100) and punishes crashing (−100) and fuel use. An average of 200 counts as solved.',
+          'That episode reward is exactly the fitness NEAT optimises.'],
+      2: ['A network: inputs on the left, weighted connections, 4 action scores on the right; the highest score fires.',
+          'A genome lists node genes and connection genes (from, to, weight, enabled). Reading it builds the network.',
+          'Every connection gene has an innovation number: a historical marker shared by genes of the same origin.',
+          'The evolved winner has no hidden nodes and 17 of the 32 possible connections.'],
+      3: ['Weight mutation: each weight has an 80% chance of a small nudge.',
+          'Add connection (50% of children): wire two unconnected nodes, with a new innovation number.',
+          'Add node (20%): split a connection; in-weight 1, out-weight = old weight, so behaviour barely changes.',
+          'In the run, evolution first pruned connections; the late, much bigger networks flew worse.'],
+      4: ['Line two parents up by innovation number: matching, disjoint and excess genes.',
+          'Matching genes come from either parent at random; disjoint and excess from the fitter parent.',
+          'One generation: evaluate → speciate → select (best 20% per species, 2 elites) → reproduce.'],
+      5: ['New structure starts out weak, so it needs protection to survive long enough to be tuned.',
+          'Compatibility distance: δ = (c₁·D + c₂·Σ|Δw|) / N; same species if δ < 2.2.',
+          'Species share their offspring; a species that stagnates for 20 generations dies out.',
+          '27 species appeared over this run.'],
+      6: ['Fitness = average reward over 5 episodes, with the same starts for every genome in a generation.',
+          'Each generation\'s champion also flies 100 unseen episodes; solved at generation 37.',
+          'Even late in the run many children crash: mutation keeps breaking things, and that is the price of searching.',
+          'Champions from generation 0, 10, 25, 50, 100 and the winner fly the same start.'],
+      7: ['Switch one connection off at a time and measure the landing rate.',
+          'Falling speed → main engine is the brake; without it the lander never lands.',
+          'Tilt → left engine keeps it upright; the right leg sensor tells it to stop firing after touchdown.',
+          '9 of the 17 connections can go with almost no loss.',
+          'Failures: crashes end right of the pad; timeouts sit on the pad with only the ignored left leg down.']
+    };
+    var lessons = [], current = 0;
+    var $ = function (id) { return document.getElementById(id); };
+    function fmt(sec) { var m = Math.floor(sec / 60), s = Math.round(sec % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
+
+    function showLesson(n) {
+      var L = lessons[n - 1];
+      if (!L) return;
+      current = n;
+      $('lNum').textContent = n;
+      $('lTitle').textContent = L.title;
+      $('lSub').textContent = L.subtitle + ' · ' + fmt(L.seconds);
+      var v = $('lVideo');
+      v.pause();
+      v.innerHTML = '<source src="lessons/' + L.slug + '.mp4" type="video/mp4">' +
+        '<track kind="captions" src="lessons/' + L.slug + '.vtt" srclang="en" label="English">';
+      v.poster = 'lessons/' + L.slug + '.jpg';
+      v.load();
+      $('lPoints').innerHTML = (POINTS[n] || []).map(function (p) { return '<li>' + p + '</li>'; }).join('');
+      $('lText').innerHTML = L.transcript.map(function (t) {
+        return '<p>' + t.text.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</p>';
+      }).join('');
+      $('lTranscript').open = false;
+      var prev = lessons[n - 2], next = lessons[n];
+      $('lPrev').setAttribute('aria-disabled', prev ? 'false' : 'true');
+      $('lNext').setAttribute('aria-disabled', next ? 'false' : 'true');
+      if (prev) { $('lPrev').href = '#lessons/' + (n - 1); $('lPrev').querySelector('b').textContent = prev.title; }
+      if (next) { $('lNext').href = '#lessons/' + (n + 1); $('lNext').querySelector('b').textContent = next.title; }
+      var list = $('lessonList');
+      Array.prototype.forEach.call(list.querySelectorAll('a'), function (a, i) {
+        a.setAttribute('aria-current', i === n - 1 ? 'true' : 'false');
+        if (i === n - 1 && list.scrollWidth > list.clientWidth) list.scrollLeft = a.parentNode.offsetLeft - 40;
+      });
+    }
+
+    function route() {
+      var h = location.hash.replace(/^#/, '') || 'overview';
+      var m = h.match(/^lessons(?:\/(\d+))?$/);
+      var onLessons = !!m;
+      $('overview').hidden = onLessons;
+      $('lessons').hidden = !onLessons;
+      $('tab-overview').setAttribute('aria-current', onLessons ? 'false' : 'page');
+      $('tab-lessons').setAttribute('aria-current', onLessons ? 'page' : 'false');
+      document.querySelectorAll('video').forEach(function (v) { if (v.closest('[hidden]')) v.pause(); });
+      if (onLessons) {
+        var n = m[1] ? parseInt(m[1], 10) : (current || 1);
+        if (lessons.length) showLesson(Math.min(Math.max(n, 1), lessons.length));
+        else current = n;
+        window.scrollTo(0, 0);
+      } else if (h !== 'overview') {
+        var el = document.getElementById(h);
+        if (el) el.scrollIntoView();
+      } else {
+        window.scrollTo(0, 0);
+      }
+    }
+
+    fetch('lessons/lessons.json').then(function (r) { return r.json(); }).then(function (data) {
+      lessons = data;
+      $('lessonList').innerHTML = data.map(function (L) {
+        return '<li><a href="#lessons/' + L.n + '"><span class="n">' + L.n + '</span><span class="t">' +
+          L.title + '</span><span class="d">' + fmt(L.seconds) + ' · ' + L.subtitle + '</span></a></li>';
+      }).join('');
+      route();
+    });
+    window.addEventListener('hashchange', route);
+    route();
+  })();
+</script>
+</body>
+</html>
